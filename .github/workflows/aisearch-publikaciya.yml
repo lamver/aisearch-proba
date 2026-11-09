@@ -17,7 +17,19 @@ jobs:
       name: github-pages
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run build -- --base=/${{ github.event.repository.name }}/
+      - id: papka
+        run: |
+          for d in dist build out; do
+            if [ -d "$d" ]; then echo "put=$d" >> "$GITHUB_OUTPUT"; exit 0; fi
+          done
+          echo "Сборка не создала папку dist, build или out" >&2
+          exit 1
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: ${{ steps.papka.outputs.put }}
       - uses: actions/deploy-pages@v4
